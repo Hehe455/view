@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kuromi Analytics 💜</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Viewing Page 💜</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
 
   <style>
     * {
@@ -21,7 +21,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
     }
 
     header {
@@ -35,14 +34,15 @@
 
     .container {
       margin-top: 30px;
-      width: 90%;
-      max-width: 900px;
+      width: 95%;
+      max-width: 1000px;
       background: rgba(50, 0, 70, 0.6);
       border: 2px solid #c17aff;
       border-radius: 20px;
       box-shadow: 0 0 15px rgba(193, 122, 255, 0.3);
-      padding: 25px;
+      padding: 20px;
       backdrop-filter: blur(5px);
+      overflow-x: auto;
     }
 
     table {
@@ -53,12 +53,13 @@
     th, td {
       padding: 12px 10px;
       text-align: left;
+      border-bottom: 1px solid rgba(193, 122, 255, 0.3);
     }
 
     th {
       background: #6a0dad;
-      border-bottom: 2px solid #c17aff;
       color: #fff;
+      font-weight: 600;
       position: sticky;
       top: 0;
       z-index: 1;
@@ -73,6 +74,12 @@
       transition: 0.3s;
     }
 
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #aaa;
+    }
+
     footer {
       margin: 30px 0 20px;
       color: #b87cff;
@@ -80,7 +87,6 @@
       text-align: center;
     }
 
-    /* Toast */
     #toast {
       position: fixed;
       bottom: 25px;
@@ -103,28 +109,18 @@
       visibility: visible;
       bottom: 50px;
     }
-
-    .loading {
-      text-align: center;
-      padding: 20px;
-      color: #aaa;
-    }
   </style>
 </head>
 <body>
-  <header>💀 Kuromi Analytics Dashboard 💜</header>
+  <header>Viewing Page 💜</header>
 
   <div class="container">
-    <table>
-      <thead>
-        <tr>
-          <th>Action</th>
-          <th>Details</th>
-          <th>Timestamp</th>
-        </tr>
+    <table id="analyticsTable">
+      <thead id="tableHead">
+        <tr><th>Loading...</th></tr>
       </thead>
-      <tbody id="analyticsBody">
-        <tr><td colspan="3" class="loading">Loading analytics...</td></tr>
+      <tbody id="tableBody">
+        <tr><td class="loading">Please wait...</td></tr>
       </tbody>
     </table>
   </div>
@@ -149,7 +145,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const analyticsBody = document.getElementById("analyticsBody");
+    const tableHead = document.getElementById("tableHead");
+    const tableBody = document.getElementById("tableBody");
     const toast = document.getElementById("toast");
 
     function showToast(message) {
@@ -158,40 +155,57 @@
       setTimeout(() => toast.classList.remove("show"), 2500);
     }
 
-    async function loadAnalytics() {
-      analyticsBody.innerHTML = "<tr><td colspan='3' class='loading'>Fetching data...</td></tr>";
+    async function loadAllAnalytics() {
+      tableHead.innerHTML = "<tr><th>Loading headers...</th></tr>";
+      tableBody.innerHTML = "<tr><td class='loading'>Fetching all analytics...</td></tr>";
 
       try {
         const q = query(collection(db, "analytics"), orderBy("timestamp", "desc"));
         const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
-          analyticsBody.innerHTML = "<tr><td colspan='3' class='loading'>No analytics data found.</td></tr>";
+          tableHead.innerHTML = "<tr><th>No Data</th></tr>";
+          tableBody.innerHTML = "<tr><td class='loading'>No analytics data found.</td></tr>";
           return;
         }
 
-        analyticsBody.innerHTML = "";
+        const allDocs = [];
+        const allKeys = new Set();
 
         snapshot.forEach(doc => {
           const data = doc.data();
-          const date = data.timestamp ? new Date(data.timestamp) : null;
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${data.action || "-"}</td>
-            <td>${data.details || data.message || "-"}</td>
-            <td>${date ? date.toLocaleString() : "-"}</td>
-          `;
-          analyticsBody.appendChild(row);
+          data.id = doc.id;
+          allDocs.push(data);
+          Object.keys(data).forEach(k => allKeys.add(k));
         });
 
-        showToast("✅ Analytics Loaded");
-      } catch (error) {
-        console.error("Error loading analytics:", error);
-        analyticsBody.innerHTML = "<tr><td colspan='3' class='loading'>Error loading data.</td></tr>";
+        // Create header row dynamically
+        const headers = Array.from(allKeys);
+        tableHead.innerHTML = "<tr>" + headers.map(k => `<th>${k}</th>`).join("") + "</tr>";
+
+        // Create body rows
+        tableBody.innerHTML = "";
+        allDocs.forEach(data => {
+          const row = document.createElement("tr");
+          row.innerHTML = headers.map(k => {
+            const val = data[k];
+            if (val instanceof Object && val.seconds) {
+              return `<td>${new Date(val.seconds * 1000).toLocaleString()}</td>`;
+            }
+            return `<td>${val !== undefined ? val : "-"}</td>`;
+          }).join("");
+          tableBody.appendChild(row);
+        });
+
+        showToast("✅ All analytics loaded successfully");
+      } catch (err) {
+        console.error("Error loading analytics:", err);
+        tableHead.innerHTML = "<tr><th>Error</th></tr>";
+        tableBody.innerHTML = "<tr><td class='loading'>Error loading analytics data.</td></tr>";
       }
     }
 
-    loadAnalytics();
+    loadAllAnalytics();
   </script>
 </body>
 </html>
