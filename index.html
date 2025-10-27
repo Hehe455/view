@@ -1,90 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lemme take a look</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kuromi Analytics 💜</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
-      background: radial-gradient(circle at top left, #0d0d0d, #1e002a);
+      background: radial-gradient(circle at top, #0a0a0a, #1a001f);
       color: #fff;
-      overflow: hidden;
-    }
-
-    header {
-      text-align: center;
-      padding: 20px;
-      color: #d18dfb;
-      font-size: 1.8rem;
-      text-shadow: 0 0 12px #c57bff;
-    }
-
-    .slider-container {
-      display: flex;
-      transition: transform 0.6s ease-in-out;
-      width: 300%; /* 3 panels */
-    }
-
-    .slide {
-      flex: 0 0 100%;
-      height: calc(100vh - 100px);
-      padding: 30px;
-      overflow-y: auto;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
     }
 
-    /* Panel styles */
-    .panel {
-      background: rgba(60, 0, 80, 0.5);
+    header {
+      margin-top: 40px;
+      font-size: 2rem;
+      font-weight: 600;
+      color: #d18dfb;
+      text-shadow: 0 0 12px #c57bff;
+      text-align: center;
+    }
+
+    .container {
+      margin-top: 30px;
+      width: 90%;
+      max-width: 900px;
+      background: rgba(50, 0, 70, 0.6);
       border: 2px solid #c17aff;
       border-radius: 20px;
-      padding: 20px;
-      width: 80%;
-      box-shadow: 0 0 15px #c17aff;
+      box-shadow: 0 0 15px rgba(193, 122, 255, 0.3);
+      padding: 25px;
+      backdrop-filter: blur(5px);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
     }
+
     th, td {
-      padding: 10px;
-      border-bottom: 1px solid #7a2cb8;
+      padding: 12px 10px;
       text-align: left;
     }
+
     th {
       background: #6a0dad;
+      border-bottom: 2px solid #c17aff;
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
 
-    /* Navigation */
-    .nav-btn {
-      position: fixed;
-      top: 50%;
-      transform: translateY(-50%);
-      background: #6a0dad;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 45px;
-      height: 45px;
-      font-size: 1.4rem;
-      cursor: pointer;
-      box-shadow: 0 0 15px #c17aff;
-      transition: background 0.3s ease;
-      z-index: 10;
+    tr:nth-child(even) {
+      background-color: rgba(90, 0, 120, 0.3);
     }
 
-    .nav-btn:hover { background: #8a2be2; }
-    #leftBtn { left: 15px; }
-    #rightBtn { right: 15px; }
+    tr:hover {
+      background-color: rgba(150, 0, 200, 0.4);
+      transition: 0.3s;
+    }
+
+    footer {
+      margin: 30px 0 20px;
+      color: #b87cff;
+      font-size: 0.9rem;
+      text-align: center;
+    }
 
     /* Toast */
     #toast {
@@ -93,75 +87,55 @@
       left: 50%;
       transform: translateX(-50%);
       background: #6a0dad;
-      color: #fff;
-      padding: 10px 18px;
+      color: white;
+      padding: 12px 20px;
       border-radius: 10px;
+      font-size: 0.9rem;
+      box-shadow: 0 0 15px #c17aff;
       opacity: 0;
       visibility: hidden;
-      transition: all 0.3s ease;
-      box-shadow: 0 0 20px #c17aff;
+      transition: all 0.4s ease;
+      z-index: 100;
     }
+
     #toast.show {
       opacity: 1;
       visibility: visible;
       bottom: 50px;
     }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #aaa;
+    }
   </style>
 </head>
 <body>
-  <header>Sneak Peek</header>
+  <header>💀 Kuromi Analytics Dashboard 💜</header>
 
-  <button id="leftBtn" class="nav-btn">❮</button>
-  <button id="rightBtn" class="nav-btn">❯</button>
-
-  <div id="slider" class="slider-container">
-    <!-- Page 1 -->
-    <div class="slide" id="analyticsPage">
-      <div class="panel">
-        <h2>📊 All Analytics</h2>
-        <table id="analyticsTable">
-          <thead>
-            <tr>
-              <th>Action</th>
-              <th>Details</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody id="analyticsBody">
-            <tr><td colspan="3" style="text-align:center;color:#999;">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Page 2 -->
-    <div class="slide" id="filtersPage">
-      <div class="panel">
-        <h2>⚙️ Filters</h2>
-        <select id="actionFilter">
-          <option value="all">All</option>
-          <option value="page_load">Page Loads</option>
-          <option value="add_favorite">Add Favorites</option>
-          <option value="remove_favorite">Remove Favorites</option>
-        </select>
-        <button id="applyFilter">Apply</button>
-      </div>
-    </div>
-
-    <!-- Page 3 -->
-    <div class="slide" id="statsPage">
-      <div class="panel">
-        <h2>📈 Summary</h2>
-        <p id="summaryStats">Fetching data...</p>
-      </div>
-    </div>
+  <div class="container">
+    <table>
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Details</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="analyticsBody">
+        <tr><td colspan="3" class="loading">Loading analytics...</td></tr>
+      </tbody>
+    </table>
   </div>
 
   <div id="toast"></div>
 
+  <footer>Made with 💜 by Kuromi</footer>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBOmm5l-irq0K9FfYi2soctX1fetc613Rc",
@@ -175,72 +149,47 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const analyticsBody = document.getElementById('analyticsBody');
-    const summaryStats = document.getElementById('summaryStats');
-    const slider = document.getElementById('slider');
-    const toast = document.getElementById('toast');
-    let currentIndex = 0;
+    const analyticsBody = document.getElementById("analyticsBody");
+    const toast = document.getElementById("toast");
 
-    function showToast(msg) {
-      toast.textContent = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2200);
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2500);
     }
-
-    function slideTo(index) {
-      currentIndex = Math.max(0, Math.min(2, index));
-      slider.style.transform = `translateX(-${currentIndex * 100}%)`;
-    }
-
-    document.getElementById('leftBtn').addEventListener('click', () => slideTo(currentIndex - 1));
-    document.getElementById('rightBtn').addEventListener('click', () => slideTo(currentIndex + 1));
 
     async function loadAnalytics() {
-      analyticsBody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>Loading...</td></tr>";
-      const q = query(collection(db, "analytics"), orderBy("timestamp", "desc"));
-      const snapshot = await getDocs(q);
-      analyticsBody.innerHTML = "";
-      let count = 0;
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const row = document.createElement('tr');
-        const date = data.timestamp ? new Date(data.timestamp) : null;
-        row.innerHTML = `
-          <td>${data.action || "-"}</td>
-          <td>${data.details || data.message || "-"}</td>
-          <td>${date ? date.toLocaleString() : "-"}</td>
-        `;
-        analyticsBody.appendChild(row);
-        count++;
-      });
-      summaryStats.textContent = `Total logs: ${count}`;
-      showToast("✅ Analytics Loaded");
-    }
+      analyticsBody.innerHTML = "<tr><td colspan='3' class='loading'>Fetching data...</td></tr>";
 
-    document.getElementById('applyFilter').addEventListener('click', async () => {
-      const val = document.getElementById('actionFilter').value;
-      analyticsBody.innerHTML = "<tr><td colspan='3'>Filtering...</td></tr>";
-      let q;
-      if (val === 'all') {
-        q = query(collection(db, "analytics"), orderBy("timestamp", "desc"));
-      } else {
-        q = query(collection(db, "analytics"), where("action", "==", val), orderBy("timestamp", "desc"));
+      try {
+        const q = query(collection(db, "analytics"), orderBy("timestamp", "desc"));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          analyticsBody.innerHTML = "<tr><td colspan='3' class='loading'>No analytics data found.</td></tr>";
+          return;
+        }
+
+        analyticsBody.innerHTML = "";
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const date = data.timestamp ? new Date(data.timestamp) : null;
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${data.action || "-"}</td>
+            <td>${data.details || data.message || "-"}</td>
+            <td>${date ? date.toLocaleString() : "-"}</td>
+          `;
+          analyticsBody.appendChild(row);
+        });
+
+        showToast("✅ Analytics Loaded");
+      } catch (error) {
+        console.error("Error loading analytics:", error);
+        analyticsBody.innerHTML = "<tr><td colspan='3' class='loading'>Error loading data.</td></tr>";
       }
-      const snapshot = await getDocs(q);
-      analyticsBody.innerHTML = "";
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const date = data.timestamp ? new Date(data.timestamp) : null;
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${data.action || "-"}</td>
-          <td>${data.details || data.message || "-"}</td>
-          <td>${date ? date.toLocaleString() : "-"}</td>
-        `;
-        analyticsBody.appendChild(row);
-      });
-      showToast("🔍 Filter Applied");
-    });
+    }
 
     loadAnalytics();
   </script>
