@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lemme take a look</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top left, #0d0d0d, #1e002a);
+      color: #fff;
+      overflow: hidden;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px;
+      color: #d18dfb;
+      font-size: 1.8rem;
+      text-shadow: 0 0 12px #c57bff;
+    }
+
+    .slider-container {
+      display: flex;
+      transition: transform 0.6s ease-in-out;
+      width: 300%; /* 3 panels */
+    }
+
+    .slide {
+      flex: 0 0 100%;
+      height: calc(100vh - 100px);
+      padding: 30px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    /* Panel styles */
+    .panel {
+      background: rgba(60, 0, 80, 0.5);
+      border: 2px solid #c17aff;
+      border-radius: 20px;
+      padding: 20px;
+      width: 80%;
+      box-shadow: 0 0 15px #c17aff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #7a2cb8;
+      text-align: left;
+    }
+    th {
+      background: #6a0dad;
+    }
+
+    /* Navigation */
+    .nav-btn {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #6a0dad;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      font-size: 1.4rem;
+      cursor: pointer;
+      box-shadow: 0 0 15px #c17aff;
+      transition: background 0.3s ease;
+      z-index: 10;
+    }
+
+    .nav-btn:hover { background: #8a2be2; }
+    #leftBtn { left: 15px; }
+    #rightBtn { right: 15px; }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #6a0dad;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 10px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 20px #c17aff;
+    }
+    #toast.show {
+      opacity: 1;
+      visibility: visible;
+      bottom: 50px;
+    }
+  </style>
+</head>
+<body>
+  <header>Sneak Peek</header>
+
+  <button id="leftBtn" class="nav-btn">❮</button>
+  <button id="rightBtn" class="nav-btn">❯</button>
+
+  <div id="slider" class="slider-container">
+    <!-- Page 1 -->
+    <div class="slide" id="analyticsPage">
+      <div class="panel">
+        <h2>📊 All Analytics</h2>
+        <table id="analyticsTable">
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Details</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="analyticsBody">
+            <tr><td colspan="3" style="text-align:center;color:#999;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Page 2 -->
+    <div class="slide" id="filtersPage">
+      <div class="panel">
+        <h2>⚙️ Filters</h2>
+        <select id="actionFilter">
+          <option value="all">All</option>
+          <option value="page_load">Page Loads</option>
+          <option value="add_favorite">Add Favorites</option>
+          <option value="remove_favorite">Remove Favorites</option>
+        </select>
+        <button id="applyFilter">Apply</button>
+      </div>
+    </div>
+
+    <!-- Page 3 -->
+    <div class="slide" id="statsPage">
+      <div class="panel">
+        <h2>📈 Summary</h2>
+        <p id="summaryStats">Fetching data...</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBOmm5l-irq0K9FfYi2soctX1fetc613Rc",
+      authDomain: "yuta-f0c26.firebaseapp.com",
+      projectId: "yuta-f0c26",
+      storageBucket: "yuta-f0c26.firebasestorage.app",
+      messagingSenderId: "947699204653",
+      appId: "1:947699204653:web:1f530ffc40c4f58c63aea4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const analyticsBody = document.getElementById('analyticsBody');
+    const summaryStats = document.getElementById('summaryStats');
+    const slider = document.getElementById('slider');
+    const toast = document.getElementById('toast');
+    let currentIndex = 0;
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    function slideTo(index) {
+      currentIndex = Math.max(0, Math.min(2, index));
+      slider.style.transform = `translateX(-${currentIndex * 100}%)`;
+    }
+
+    document.getElementById('leftBtn').addEventListener('click', () => slideTo(currentIndex - 1));
+    document.getElementById('rightBtn').addEventListener('click', () => slideTo(currentIndex + 1));
+
+    async function loadAnalytics() {
+      analyticsBody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>Loading...</td></tr>";
+      const q = query(collection(db, "analytics"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+      analyticsBody.innerHTML = "";
+      let count = 0;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const row = document.createElement('tr');
+        const date = data.timestamp ? new Date(data.timestamp) : null;
+        row.innerHTML = `
+          <td>${data.action || "-"}</td>
+          <td>${data.details || data.message || "-"}</td>
+          <td>${date ? date.toLocaleString() : "-"}</td>
+        `;
+        analyticsBody.appendChild(row);
+        count++;
+      });
+      summaryStats.textContent = `Total logs: ${count}`;
+      showToast("✅ Analytics Loaded");
+    }
+
+    document.getElementById('applyFilter').addEventListener('click', async () => {
+      const val = document.getElementById('actionFilter').value;
+      analyticsBody.innerHTML = "<tr><td colspan='3'>Filtering...</td></tr>";
+      let q;
+      if (val === 'all') {
+        q = query(collection(db, "analytics"), orderBy("timestamp", "desc"));
+      } else {
+        q = query(collection(db, "analytics"), where("action", "==", val), orderBy("timestamp", "desc"));
+      }
+      const snapshot = await getDocs(q);
+      analyticsBody.innerHTML = "";
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const date = data.timestamp ? new Date(data.timestamp) : null;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${data.action || "-"}</td>
+          <td>${data.details || data.message || "-"}</td>
+          <td>${date ? date.toLocaleString() : "-"}</td>
+        `;
+        analyticsBody.appendChild(row);
+      });
+      showToast("🔍 Filter Applied");
+    });
+
+    loadAnalytics();
+  </script>
+</body>
+</html>
